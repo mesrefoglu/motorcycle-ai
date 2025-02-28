@@ -20,7 +20,14 @@ const quizQuestions: Question[] = [
     {
         question: "What type of motorcycle are you interested in?",
         type: "checkbox",
-        options: ["Allround", "Sport", "Adventure / Offroad", "Classic"],
+        options: [
+            "All-rounder",
+            "Cruiser",
+            "Sport",
+            "Adventure / Offroad",
+            "Classic",
+            "Touring",
+        ],
     },
     { question: "Enter your budget range ($):", type: "range" },
     {
@@ -88,9 +95,9 @@ const Quiz: React.FC = () => {
         if (currentQuestion < quizQuestions.length - 1) {
             setCurrentQuestion(currentQuestion + 1);
         } else {
-            navigate("/results");
+            navigate("/results", { state: { quizAnswers: answers } });
         }
-    }, [currentQuestion, navigate]);
+    }, [answers, currentQuestion, navigate]);
 
     const prevQuestion = () => {
         if (currentQuestion > 0) setCurrentQuestion(currentQuestion - 1);
