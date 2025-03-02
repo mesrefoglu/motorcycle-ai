@@ -36,7 +36,7 @@ const quizQuestions: Question[] = [
         options: ["Yes", "No"],
     },
     {
-        question: "What years do you want your bike to be between?",
+        question: "How old would you like your bike to be? (years)",
         type: "range",
     },
     { question: "What is your height? (cm)", type: "number" },
@@ -92,12 +92,16 @@ const Quiz: React.FC = () => {
     };
 
     const nextQuestion = useCallback(() => {
+        if (currentQuestion === 5 && answers[0] !== "Beginner") {
+            navigate("/results", { state: { quizAnswers: answers } });
+            return;
+        }
         if (currentQuestion < quizQuestions.length - 1) {
             setCurrentQuestion(currentQuestion + 1);
         } else {
             navigate("/results", { state: { quizAnswers: answers } });
         }
-    }, [answers, currentQuestion, navigate]);
+    }, [currentQuestion, answers, navigate]);
 
     const prevQuestion = () => {
         if (currentQuestion > 0) setCurrentQuestion(currentQuestion - 1);
@@ -253,7 +257,8 @@ const Quiz: React.FC = () => {
                         onClick={nextQuestion}
                         className="px-4 py-2 bg-black text-white"
                     >
-                        {currentQuestion === quizQuestions.length - 1
+                        {currentQuestion === quizQuestions.length - 1 ||
+                        (answers[0] !== "Beginner" && currentQuestion === 5)
                             ? "Submit"
                             : "Next"}
                     </button>
