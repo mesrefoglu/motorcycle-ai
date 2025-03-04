@@ -82,6 +82,8 @@ interface QuizAnswers {
 interface FilterCriteria {
     minCC: number;
     maxCC: number;
+    minPrice: number;
+    maxPrice: number;
     maxSeatHeight: number;
     bannedCylinders: string[];
     interestedCategories: string[];
@@ -91,6 +93,8 @@ interface FilterCriteria {
 function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
     let minCC = 0;
     let maxCC = 5000;
+    let minPrice = 0;
+    let maxPrice = 100000;
     let maxSeatHeight = 5000;
     const bannedCylinders: string[] = [];
     const interestedCategories: string[] = [];
@@ -144,6 +148,19 @@ function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
         interestedCategories.push("touring");
     }
 
+    const priceRange = quizAnswers[3] as { min: string; max: string };
+    if (Number(priceRange.min)) {
+        minPrice = parseInt(priceRange.min) - 1000;
+    }
+    if (Number(priceRange.max)) {
+        maxPrice = parseInt(priceRange.max) + 1000;
+    }
+
+    const okWithUsed = quizAnswers[4] as string;
+    if (okWithUsed === "Yes") {
+        maxPrice *= 1.5;
+    }
+
     const region = quizAnswers[5] as string;
     if (region === "Asia") {
         allowedBrands.push(...AsianMotorcycleBrands);
@@ -186,6 +203,8 @@ function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
     const filterCriteria = {
         minCC,
         maxCC,
+        minPrice,
+        maxPrice,
         maxSeatHeight,
         bannedCylinders,
         interestedCategories,
@@ -201,12 +220,19 @@ function applyFilters(
     criteria: FilterCriteria
 ) {
     const bikeCC = parseInt(bike["Displacement (CC)"]);
+    const bikePrice = parseInt(bike["Estimated MSRP (USD)"]);
     const bikeSeatHeight = parseInt(bike["Seat Height (mm)"]);
+
     if (bikeCC < criteria.minCC || bikeCC > criteria.maxCC) return false;
+
+    if (bikePrice < criteria.minPrice || bikePrice > criteria.maxPrice)
+        return false;
+
     for (const bannedCylinder of criteria.bannedCylinders) {
         if (bike["Engine Cylinder"].toLowerCase().includes(bannedCylinder))
             return false;
     }
+
     if (criteria.interestedCategories.length > 0) {
         let foundCategory = false;
         for (const category of criteria.interestedCategories) {
@@ -217,9 +243,12 @@ function applyFilters(
         }
         if (!foundCategory) return false;
     }
+
     if (!criteria.allowedBrands.some((brand) => bike["Brand"].includes(brand)))
         return false;
+
     if (bikeSeatHeight > criteria.maxSeatHeight) return false;
+
     return true;
 }
 
@@ -272,13 +301,13 @@ const BikeResults: React.FC = () => {
     const bike = bikes[currentIndex];
     return (
         <div className="min-h-screen min-w-screen flex items-center justify-center p-4 relative">
-            <div className="bg-dark-orange rounded-lg p-6 text-white w-[90vh]">
-                <div className="mb-4 text-center">
-                    <h2 className="text-3xl font-bold">
+            <div className="bg-dark-orange rounded-lg p-6 text-white w-[80vh]">
+                <div className="mb-6 text-center">
+                    <h2 className="text-2xl font-bold">
                         {bike.Brand} {bike.Model}
                     </h2>
                 </div>
-                <div className="overflow-auto h-[40vh]">
+                <div className="overflow-auto h-[52vh]">
                     <table className="w-full text-sm">
                         <tbody>
                             {Object.entries(bike).map(([key, value]) => {
@@ -294,12 +323,12 @@ const BikeResults: React.FC = () => {
                                             {key}
                                         </td>
                                         <td className="border px-2 py-1">
-                                            {key === "Estimated Price (USD)"
+                                            {key === "Estimated MSRP (USD)"
                                                 ? "$" +
                                                   Number(
                                                       value
                                                   ).toLocaleString() +
-                                                  " (just an estimate, likely inaccurate)"
+                                                  " (likely inaccurate, used may be cheaper)"
                                                 : value}
                                         </td>
                                     </tr>

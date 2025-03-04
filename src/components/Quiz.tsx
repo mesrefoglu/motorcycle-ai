@@ -14,11 +14,11 @@ const quizQuestions: Question[] = [
         options: ["Beginner", "Intermediate", "Advanced"],
     },
     {
-        question: "Enter your desired engine displacement range (CC):",
+        question: "What is your desired CC range?",
         type: "range",
     },
     {
-        question: "What type of motorcycle are you interested in?",
+        question: "What types are you interested in?",
         type: "checkbox",
         options: [
             "All-rounder",
@@ -29,9 +29,9 @@ const quizQuestions: Question[] = [
             "Touring",
         ],
     },
-    { question: "Enter your budget range ($):", type: "range" },
+    { question: "What is your budget range? (USD)", type: "range" },
     {
-        question: "Would you consider used motorcycles?",
+        question: "Would you consider a used motorcycle?",
         type: "radio",
         options: ["Yes", "No"],
     },
@@ -48,7 +48,7 @@ const quizQuestions: Question[] = [
         ],
     },
     {
-        question: "Which motorcycle brands are you interested in?",
+        question: "Which brands are you interested in?",
         type: "checkbox",
         options: [
             "Aprilia",
