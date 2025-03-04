@@ -1,13 +1,81 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Papa from "papaparse";
 import { useLocation } from "react-router-dom";
 
-type Bike = { [key: string]: string };
+const AllMotorcycleBrands = [
+    "Aprilia",
+    "Bajaj",
+    "Benelli",
+    "BMW",
+    "Ducati",
+    "Harley-Davidson",
+    "Hero",
+    "Honda",
+    "Husqvarna",
+    "Indian",
+    "Italika",
+    "Kawasaki",
+    "KTM",
+    "Kymco",
+    "Lifan",
+    "Motomel",
+    "Moto Guzzi",
+    "MV Agusta",
+    "Royal Enfield",
+    "Shineray",
+    "Suzuki",
+    "Triumph",
+    "TVS",
+    "Yamaha",
+    "Zero",
+];
+const CommonMotorcycleBrands = [
+    "Aprilia",
+    "BMW",
+    "Ducati",
+    "Harley-Davidson",
+    "Honda",
+    "Kawasaki",
+    "KTM",
+    "Kymco",
+    "Moto Guzzi",
+    "MV Agusta",
+    "Royal Enfield",
+    "Suzuki",
+    "Triumph",
+    "Yamaha",
+    "Zero",
+];
+const AsianMotorcycleBrands = [
+    "Bajaj",
+    "Benelli",
+    "Hero MotoCorp",
+    "Husqvarna",
+    "Indian",
+    "Lifan",
+    "Shineray",
+    "TVS",
+];
+const EuropeanMotorcycleBrands = ["Benelli", "Indian", "Husqvarna", "Lifan"];
+const NorthAmericanMotorcycleBrands = ["Husqvarna", "Indian"];
+const SouthAmericanMotorcycleBrands = [
+    "Bajaj",
+    "Benelli",
+    "Italika",
+    "Lifan",
+    "Motomel",
+];
+const AustralianMotorcycleBrands = ["Benelli", "Husqvarna", "Indian"];
+const AfricanMotorcycleBrands = [
+    "Bajaj",
+    "Benelli",
+    "Hero MotoCorp",
+    "Lifan",
+    "TVS",
+    "Shineray",
+];
 
-const formatBrand = (brand: string) =>
-    brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase();
-
-const formatModel = (model: string) =>
+export const formatModel = (model: string) =>
     model
         .split(" ")
         .map((word) => {
@@ -15,7 +83,10 @@ const formatModel = (model: string) =>
             if (letterCount <= 2) {
                 if (word.charAt(0).toLowerCase() === "i") {
                     return word.charAt(0) + word.slice(1).toUpperCase();
-                } else if (word.charAt(1).toLowerCase() === "i") {
+                } else if (
+                    word.charAt(1) &&
+                    word.charAt(1).toLowerCase() === "i"
+                ) {
                     return word.charAt(0).toUpperCase() + word.slice(1);
                 } else return word.toUpperCase();
             } else {
@@ -29,11 +100,22 @@ const formatModel = (model: string) =>
             }
         })
         .join(" ");
+
 interface QuizAnswers {
     [index: number]: string | { min: string; max: string } | string[];
 }
+interface FilterCriteria {
+    minCC: number;
+    maxCC: number;
+    minYear: number;
+    maxYear: number;
+    maxSeatHeight: number;
+    bannedCylinders: string[];
+    interestedCategories: string[];
+    allowedBrands: string[];
+}
 
-function applyFilters(bike: Bike, quizAnswers: QuizAnswers): boolean {
+function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
     let minCC = 0;
     let maxCC = 5000;
     let minYear = 0;
@@ -41,13 +123,14 @@ function applyFilters(bike: Bike, quizAnswers: QuizAnswers): boolean {
     let maxSeatHeight = 5000;
     const bannedCylinders: string[] = [];
     const interestedCategories: string[] = [];
+    let allowedBrands = [...CommonMotorcycleBrands];
 
     if (quizAnswers[0] === "Beginner") {
-        maxCC = 600;
+        maxCC = 610;
         bannedCylinders.push("4", "four", "6", "six", "8", "eight");
     } else if (quizAnswers[0] === "Intermediate") {
         minCC = 370;
-        maxCC = 800;
+        maxCC = 810;
         bannedCylinders.push("8", "eight");
     } else if (quizAnswers[0] === "Advanced") {
         minCC = 370;
@@ -55,22 +138,25 @@ function applyFilters(bike: Bike, quizAnswers: QuizAnswers): boolean {
 
     const cCRange = quizAnswers[1] as { min: string; max: string };
     if (Number(cCRange.min)) {
-        minCC = Math.min(minCC, parseInt(cCRange.min));
+        minCC = Math.max(minCC, parseInt(cCRange.min) - 10);
     }
     if (Number(cCRange.max)) {
-        maxCC = Math.max(maxCC, parseInt(cCRange.max));
+        maxCC = Math.min(maxCC, parseInt(cCRange.max) + 10);
     }
 
-    if ((quizAnswers[2] as string[]).includes("All-rounder")) {
+    const types = Array.isArray(quizAnswers[2])
+        ? (quizAnswers[2] as string[])
+        : [];
+    if (types.includes("All-rounder")) {
         interestedCategories.push("allround");
     }
-    if ((quizAnswers[2] as string[]).includes("Cruiser")) {
+    if (types.includes("Cruiser")) {
         interestedCategories.push("cruiser");
     }
-    if ((quizAnswers[2] as string[]).includes("Sport")) {
+    if (types.includes("Sport")) {
         interestedCategories.push("sport", "naked");
     }
-    if ((quizAnswers[2] as string[]).includes("Adventure / Offroad")) {
+    if (types.includes("Adventure / Offroad")) {
         interestedCategories.push(
             "motard",
             "enduro",
@@ -80,10 +166,10 @@ function applyFilters(bike: Bike, quizAnswers: QuizAnswers): boolean {
             "trial"
         );
     }
-    if ((quizAnswers[2] as string[]).includes("Classic")) {
+    if (types.includes("Classic")) {
         interestedCategories.push("classic");
     }
-    if ((quizAnswers[2] as string[]).includes("Touring")) {
+    if (types.includes("Touring")) {
         interestedCategories.push("touring");
     }
 
@@ -95,30 +181,81 @@ function applyFilters(bike: Bike, quizAnswers: QuizAnswers): boolean {
         maxYear = parseInt(yearRange.max);
     }
 
-    if ((quizAnswers[6] as string) !== "") {
-        maxSeatHeight = (parseInt(quizAnswers[6] as string) as number) * 4.9;
+    const region = quizAnswers[6] as string;
+    if (region === "Asia") {
+        allowedBrands.push(...AsianMotorcycleBrands);
+    } else if (region === "Europe") {
+        allowedBrands.push(...EuropeanMotorcycleBrands);
+    } else if (region === "North America") {
+        allowedBrands.push(...NorthAmericanMotorcycleBrands);
+    } else if (region === "South America") {
+        allowedBrands.push(...SouthAmericanMotorcycleBrands);
+    } else if (region === "Australia") {
+        allowedBrands.push(...AustralianMotorcycleBrands);
+    } else if (region === "Africa") {
+        allowedBrands.push(...AfricanMotorcycleBrands);
+    } else {
+        allowedBrands = [...AllMotorcycleBrands];
     }
+    const interestedBrands = Array.isArray(quizAnswers[7])
+        ? (quizAnswers[7] as string[])
+        : [];
+    if (interestedBrands.length > 0) {
+        allowedBrands = allowedBrands.filter((brand) =>
+            interestedBrands.includes(brand)
+        );
+    }
+    if ((quizAnswers[8] as string) !== "") {
+        maxSeatHeight = parseInt(quizAnswers[8] as string) * 4.9;
+    }
+    if ((quizAnswers[9] as string) !== "") {
+        const weight = parseInt(quizAnswers[9] as string);
+        if (weight > 120) {
+            minCC = Math.min(minCC, 490);
+        } else if (weight > 100) {
+            minCC = Math.min(minCC, 390);
+        } else if (weight > 80) {
+            minCC = Math.min(minCC, 290);
+        } else if (weight > 70) {
+            minCC = Math.min(minCC, 240);
+        }
+    }
+    const filterCriteria = {
+        minCC,
+        maxCC,
+        minYear,
+        maxYear,
+        maxSeatHeight,
+        bannedCylinders,
+        interestedCategories,
+        allowedBrands,
+    };
 
+    console.log(filterCriteria);
+    return filterCriteria;
+}
+
+function applyFilters(
+    bike: { [key: string]: string },
+    criteria: FilterCriteria
+) {
     const bikeCC = parseInt(bike["Displacement (CC)"]);
     const bikeYear = parseInt(bike["Year"]);
     const bikeSeatHeight = parseInt(bike["Seat Height (mm)"]);
-
     if (
-        bikeCC < minCC ||
-        bikeCC > maxCC ||
-        bikeYear < minYear ||
-        bikeYear > maxYear
+        bikeCC < criteria.minCC ||
+        bikeCC > criteria.maxCC ||
+        bikeYear < criteria.minYear ||
+        bikeYear > criteria.maxYear
     )
         return false;
-
-    for (const bannedCylinder of bannedCylinders) {
+    for (const bannedCylinder of criteria.bannedCylinders) {
         if (bike["Engine Cylinder"].toLowerCase().includes(bannedCylinder))
             return false;
     }
-
-    if (interestedCategories.length > 0) {
+    if (criteria.interestedCategories.length > 0) {
         let foundCategory = false;
-        for (const category of interestedCategories) {
+        for (const category of criteria.interestedCategories) {
             if (bike["Category"].toLowerCase().includes(category)) {
                 foundCategory = true;
                 break;
@@ -126,19 +263,23 @@ function applyFilters(bike: Bike, quizAnswers: QuizAnswers): boolean {
         }
         if (!foundCategory) return false;
     }
-
-    if (bikeSeatHeight > maxSeatHeight) return false;
-
+    if (!criteria.allowedBrands.some((brand) => bike["Brand"].includes(brand)))
+        return false;
+    if (bikeSeatHeight > criteria.maxSeatHeight) return false;
     return true;
 }
+
+type Bike = { [key: string]: string };
 
 const BikeResults: React.FC = () => {
     const location = useLocation();
     const quizAnswers = location.state?.quizAnswers;
-
     const [bikes, setBikes] = useState<Bike[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
-
+    const filterCriteria = useMemo(
+        () => computeFilterCriteria(quizAnswers),
+        [quizAnswers]
+    );
     useEffect(() => {
         fetch("/src/assets/bikes.csv")
             .then((response) => response.text())
@@ -148,14 +289,13 @@ const BikeResults: React.FC = () => {
                     skipEmptyLines: true,
                     complete: (results) => {
                         const filtered = results.data.filter((bike) =>
-                            applyFilters(bike, quizAnswers)
+                            applyFilters(bike, filterCriteria)
                         );
                         setBikes(filtered);
                     },
                 });
             });
-    }, [quizAnswers]);
-
+    }, [filterCriteria]);
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "ArrowLeft")
@@ -168,7 +308,6 @@ const BikeResults: React.FC = () => {
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [bikes]);
-
     if (bikes.length === 0) {
         return (
             <div className="min-h-screen flex items-center justify-center text-white">
@@ -176,16 +315,13 @@ const BikeResults: React.FC = () => {
             </div>
         );
     }
-
     const bike = bikes[currentIndex];
-
     return (
         <div className="min-h-screen min-w-screen flex items-center justify-center p-4 relative">
             <div className="bg-dark-orange rounded-lg p-6 text-white w-[90vh]">
                 <div className="mb-4 text-center">
                     <h2 className="text-3xl font-bold">
-                        {formatBrand(bike.Brand)} {formatModel(bike.Model)} (
-                        {bike.Year})
+                        {bike.Brand} {formatModel(bike.Model)} ({bike.Year})
                     </h2>
                 </div>
                 <div className="overflow-auto h-[40vh]">
