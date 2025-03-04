@@ -75,40 +75,13 @@ const AfricanMotorcycleBrands = [
     "Shineray",
 ];
 
-export const formatModel = (model: string) =>
-    model
-        .split(" ")
-        .map((word) => {
-            const letterCount = word.replace(/[^A-Za-z]/g, "").length;
-            if (letterCount <= 2) {
-                if (word.charAt(0).toLowerCase() === "i") {
-                    return word.charAt(0) + word.slice(1).toUpperCase();
-                } else if (
-                    word.charAt(1) &&
-                    word.charAt(1).toLowerCase() === "i"
-                ) {
-                    return word.charAt(0).toUpperCase() + word.slice(1);
-                } else return word.toUpperCase();
-            } else {
-                if (word.charAt(0).toLowerCase() === "i") {
-                    return word;
-                } else
-                    return (
-                        word.charAt(0).toUpperCase() +
-                        word.slice(1).toLowerCase()
-                    );
-            }
-        })
-        .join(" ");
-
 interface QuizAnswers {
     [index: number]: string | { min: string; max: string } | string[];
 }
+
 interface FilterCriteria {
     minCC: number;
     maxCC: number;
-    minYear: number;
-    maxYear: number;
     maxSeatHeight: number;
     bannedCylinders: string[];
     interestedCategories: string[];
@@ -118,8 +91,6 @@ interface FilterCriteria {
 function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
     let minCC = 0;
     let maxCC = 5000;
-    let minYear = 0;
-    let maxYear = 5000;
     let maxSeatHeight = 5000;
     const bannedCylinders: string[] = [];
     const interestedCategories: string[] = [];
@@ -173,15 +144,7 @@ function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
         interestedCategories.push("touring");
     }
 
-    const yearRange = quizAnswers[5] as { min: string; max: string };
-    if (Number(yearRange.min)) {
-        minYear = parseInt(yearRange.min);
-    }
-    if (Number(yearRange.max)) {
-        maxYear = parseInt(yearRange.max);
-    }
-
-    const region = quizAnswers[6] as string;
+    const region = quizAnswers[5] as string;
     if (region === "Asia") {
         allowedBrands.push(...AsianMotorcycleBrands);
     } else if (region === "Europe") {
@@ -198,17 +161,17 @@ function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
         allowedBrands = [...AllMotorcycleBrands];
     }
     const interestedBrands = Array.isArray(quizAnswers[7])
-        ? (quizAnswers[7] as string[])
+        ? (quizAnswers[6] as string[])
         : [];
     if (interestedBrands.length > 0) {
         allowedBrands = allowedBrands.filter((brand) =>
             interestedBrands.includes(brand)
         );
     }
-    if ((quizAnswers[8] as string) !== "") {
+    if ((quizAnswers[7] as string) !== "") {
         maxSeatHeight = parseInt(quizAnswers[8] as string) * 4.9;
     }
-    if ((quizAnswers[9] as string) !== "") {
+    if ((quizAnswers[8] as string) !== "") {
         const weight = parseInt(quizAnswers[9] as string);
         if (weight > 120) {
             minCC = Math.min(minCC, 490);
@@ -223,8 +186,6 @@ function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
     const filterCriteria = {
         minCC,
         maxCC,
-        minYear,
-        maxYear,
         maxSeatHeight,
         bannedCylinders,
         interestedCategories,
@@ -240,15 +201,8 @@ function applyFilters(
     criteria: FilterCriteria
 ) {
     const bikeCC = parseInt(bike["Displacement (CC)"]);
-    const bikeYear = parseInt(bike["Year"]);
     const bikeSeatHeight = parseInt(bike["Seat Height (mm)"]);
-    if (
-        bikeCC < criteria.minCC ||
-        bikeCC > criteria.maxCC ||
-        bikeYear < criteria.minYear ||
-        bikeYear > criteria.maxYear
-    )
-        return false;
+    if (bikeCC < criteria.minCC || bikeCC > criteria.maxCC) return false;
     for (const bannedCylinder of criteria.bannedCylinders) {
         if (bike["Engine Cylinder"].toLowerCase().includes(bannedCylinder))
             return false;
@@ -321,7 +275,7 @@ const BikeResults: React.FC = () => {
             <div className="bg-dark-orange rounded-lg p-6 text-white w-[90vh]">
                 <div className="mb-4 text-center">
                     <h2 className="text-3xl font-bold">
-                        {bike.Brand} {formatModel(bike.Model)} ({bike.Year})
+                        {bike.Brand} {bike.Model}
                     </h2>
                 </div>
                 <div className="overflow-auto h-[40vh]">
@@ -331,8 +285,7 @@ const BikeResults: React.FC = () => {
                                 if (
                                     !value ||
                                     key === "Brand" ||
-                                    key === "Model" ||
-                                    key === "Year"
+                                    key === "Model"
                                 )
                                     return null;
                                 return (
@@ -341,7 +294,13 @@ const BikeResults: React.FC = () => {
                                             {key}
                                         </td>
                                         <td className="border px-2 py-1">
-                                            {value}
+                                            {key === "Estimated Price (USD)"
+                                                ? "$" +
+                                                  Number(
+                                                      value
+                                                  ).toLocaleString() +
+                                                  " (just an estimate, likely inaccurate)"
+                                                : value}
                                         </td>
                                     </tr>
                                 );

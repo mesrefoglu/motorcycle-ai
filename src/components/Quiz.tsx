@@ -36,10 +36,6 @@ const quizQuestions: Question[] = [
         options: ["Yes", "No"],
     },
     {
-        question: "How old would you like your bike to be? (years)",
-        type: "range",
-    },
-    {
         question: "Which region are you in?",
         type: "radio",
         options: [
@@ -221,14 +217,16 @@ const Quiz: React.FC = () => {
                             </div>
                         )}
                         {current.type === "number" && (
-                            <input
-                                type="number"
-                                value={answers[currentQuestion] as string}
-                                onChange={(e) =>
-                                    handleTextChange(e.target.value)
-                                }
-                                className="w-full p-2 border rounded bg-black text-white"
-                            />
+                            <div className="mb-4">
+                                <input
+                                    type="number"
+                                    value={answers[currentQuestion] as string}
+                                    onChange={(e) =>
+                                        handleTextChange(e.target.value)
+                                    }
+                                    className="w-full p-2 border rounded bg-black text-white"
+                                />
+                            </div>
                         )}
                         {current.type === "range" && (
                             <div className="mb-4 flex space-x-4">
