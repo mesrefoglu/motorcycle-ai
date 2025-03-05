@@ -341,21 +341,24 @@ const BikeResults: React.FC = () => {
             (quizAnswers[7] as string) +
             " cm tall. You can mention this with the seat height of the bike. They weigh " +
             (quizAnswers[8] as string) +
-            " kilograms. We will recommend higher CC if they are on the heavier size. " +
-            " You can mention this in the explanation, but don't repeat their height and weight to them. " +
+            " kilograms. We will recommend higher CC if they are on the heavier size. You can " +
+            "mention this in the explanation, but don't repeat their height and weight to them. " +
             "Based on this information, we recommended the " +
             bike.Brand +
             " " +
             bike.Model +
-            " because it has a displacement of " +
+            ". " +
+            " It has a displacement of " +
             bike["Displacement (CC)"] +
             "cc, a seat height of " +
             bike["Seat Height (mm)"] +
             "mm, and an estimated MSRP of $" +
             Number(bike["Estimated MSRP (USD)"]).toLocaleString() +
-            ". It is a " +
+            ". This is only an estimation, mention that. It is a " +
             bike["Category"] +
             " bike. Be kind, and mention the points that make this bike a good fit for the user. " +
+            " Do not overexaggerate, as if this is the best bike since we usually recommend " +
+            "multiple bikes, just tell them why it's a good fit. " +
             "Make sure that it only takes up to 2 short paragraphs. (Max 150 words).";
 
         try {
@@ -379,15 +382,15 @@ const BikeResults: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex bg-black p-4 items-center">
-            <div className="relative w-[30vw] h-[95vh] bg-gray-900 rounded-lg p-6">
-                <div className="h-10 overflow-hidden text-center">
-                    <h2 className="text-2xl font-bold text-orange-500 truncate">
-                        {bike.Brand} {bike.Model}
-                    </h2>
-                </div>
-                <div className="mt-4 overflow-y-auto h-[calc(95vh-10rem)]">
-                    <div className="grid grid-cols-2 gap-4">
+        <div className="min-h-screen flex bg-black p-4 items-center justify-center min-w-screen">
+            <div className="flex justify-center items-center">
+                <div className="relative w-[500px] bg-gray-900 rounded-lg p-6">
+                    <div className="h-10 overflow-hidden text-center">
+                        <h2 className="text-xl font-bold text-orange-500 truncate">
+                            {bike.Brand} {bike.Model}
+                        </h2>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-4">
                         {Object.entries(bike).map(([key, value]) => {
                             if (key === "Brand" || key === "Model") return null;
                             return (
@@ -410,70 +413,72 @@ const BikeResults: React.FC = () => {
                             );
                         })}
                     </div>
-                </div>
-                <div className="absolute bottom-6 left-6">
-                    <button
-                        onClick={() =>
-                            setCurrentIndex((idx) => (idx > 0 ? idx - 1 : idx))
-                        }
-                        className="bg-orange-500 text-black rounded transition p-2"
-                    >
-                        <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                    <div className="mt-6 flex justify-between">
+                        <button
+                            onClick={() =>
+                                setCurrentIndex((idx) =>
+                                    idx > 0 ? idx - 1 : idx
+                                )
+                            }
+                            className="bg-orange-500 text-black rounded transition p-2"
                         >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15 19l-7-7 7-7"
-                            />
-                        </svg>
-                    </button>
-                </div>
-                <div className="absolute bottom-6 right-6">
-                    <button
-                        onClick={() =>
-                            setCurrentIndex((idx) =>
-                                idx < bikes.length - 1 ? idx + 1 : idx
-                            )
-                        }
-                        className="bg-orange-500 text-black rounded transition p-2"
-                    >
-                        <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                            <svg
+                                className="h-5 w-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 19l-7-7 7-7"
+                                />
+                            </svg>
+                        </button>
+                        <div className="text-gray-300 font-medium text-lg p-2">
+                            {currentIndex + 1} / {bikes.length}
+                        </div>
+                        <button
+                            onClick={() =>
+                                setCurrentIndex((idx) =>
+                                    idx < bikes.length - 1 ? idx + 1 : idx
+                                )
+                            }
+                            className="bg-orange-500 text-black rounded transition p-2"
                         >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 5l7 7-7 7"
-                            />
-                        </svg>
+                            <svg
+                                className="h-5 w-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 5l7 7-7 7"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div className="h-[600px] w-[500px] ml-8 bg-gray-900 rounded-lg shadow-xl p-6 flex flex-col">
+                    <button
+                        onClick={handleExplanation}
+                        className="mb-4 px-4 py-2 bg-orange-500 text-black rounded transition"
+                    >
+                        {loadingExplanation
+                            ? "Please wait..."
+                            : "Why this bike?"}
                     </button>
+                    <textarea
+                        className="mt-2 flex-1 bg-gray-800 text-gray-200 p-4 rounded border border-gray-700"
+                        placeholder="Explanation will appear here..."
+                        value={explanation}
+                        readOnly
+                    />
                 </div>
-                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-gray-300 font-medium text-lg">
-                    {currentIndex + 1} / {bikes.length}
-                </div>
-            </div>
-            <div className="w-[30vw] h-[95vh] ml-8 bg-gray-800 rounded-lg shadow-xl p-6 flex flex-col">
-                <button
-                    onClick={handleExplanation}
-                    className="mb-4 px-4 py-2 bg-orange-500 text-black rounded transition"
-                >
-                    {loadingExplanation ? "Loading..." : "Why this bike?"}
-                </button>
-                <textarea
-                    className="flex-1 bg-gray-900 text-gray-200 p-4 rounded border border-gray-700 resize-none"
-                    placeholder="Explanation will appear here..."
-                    value={explanation}
-                    readOnly
-                />
             </div>
         </div>
     );
