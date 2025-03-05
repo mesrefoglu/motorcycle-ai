@@ -17,7 +17,7 @@ const LandingPage: React.FC = () => {
                         Our cutting-edge AI technology combs through countless bikes to bring you the best match for
                         your style and needs.
                     </p>
-                    <button className="bg-black text-white" onClick={() => navigate("/quiz")}>
+                    <button className="bg-black text-white" onClick={() => navigate("/motorcycle-ai/quiz")}>
                         Start Survey
                     </button>
                 </div>

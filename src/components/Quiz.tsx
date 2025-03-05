@@ -114,13 +114,13 @@ const Quiz: React.FC = () => {
 
     const nextQuestion = useCallback(() => {
         if (currentQuestion === 7 && answers[0] !== "Beginner") {
-            navigate("/results", { state: { quizAnswers: answers } });
+            navigate("/motorcycle-ai/results", { state: { quizAnswers: answers } });
             return;
         }
         if (currentQuestion < quizQuestions.length - 1) {
             setCurrentQuestion(currentQuestion + 1);
         } else {
-            navigate("/results", { state: { quizAnswers: answers } });
+            navigate("/motorcycle-ai/results", { state: { quizAnswers: answers } });
         }
     }, [currentQuestion, answers, navigate]);
 
