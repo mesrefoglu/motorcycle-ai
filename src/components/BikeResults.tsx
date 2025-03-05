@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Papa from "papaparse";
 import { useLocation } from "react-router-dom";
 
+// Brand arrays
 const AllMotorcycleBrands = [
     "Aprilia",
     "Bajaj",
@@ -150,10 +151,10 @@ function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
 
     const priceRange = quizAnswers[3] as { min: string; max: string };
     if (Number(priceRange.min)) {
-        minPrice = parseInt(priceRange.min) - 1000;
+        minPrice = parseInt(priceRange.min) * 0.9;
     }
     if (Number(priceRange.max)) {
-        maxPrice = parseInt(priceRange.max) + 1000;
+        maxPrice = parseInt(priceRange.max) * 1.1;
     }
 
     const okWithUsed = quizAnswers[4] as string;
@@ -177,7 +178,7 @@ function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
     } else {
         allowedBrands = [...AllMotorcycleBrands];
     }
-    const interestedBrands = Array.isArray(quizAnswers[7])
+    const interestedBrands = Array.isArray(quizAnswers[6])
         ? (quizAnswers[6] as string[])
         : [];
     if (interestedBrands.length > 0) {
@@ -186,21 +187,21 @@ function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
         );
     }
     if ((quizAnswers[7] as string) !== "") {
-        maxSeatHeight = parseInt(quizAnswers[8] as string) * 4.9;
+        maxSeatHeight = parseInt(quizAnswers[7] as string) * 4.9;
     }
     if ((quizAnswers[8] as string) !== "") {
-        const weight = parseInt(quizAnswers[9] as string);
+        const weight = parseInt(quizAnswers[8] as string);
         if (weight > 120) {
-            minCC = Math.min(minCC, 490);
+            minCC = Math.max(minCC, 490);
         } else if (weight > 100) {
-            minCC = Math.min(minCC, 390);
+            minCC = Math.max(minCC, 390);
         } else if (weight > 80) {
-            minCC = Math.min(minCC, 290);
+            minCC = Math.max(minCC, 290);
         } else if (weight > 70) {
-            minCC = Math.min(minCC, 240);
+            minCC = Math.max(minCC, 240);
         }
     }
-    const filterCriteria = {
+    return {
         minCC,
         maxCC,
         minPrice,
@@ -210,9 +211,6 @@ function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
         interestedCategories,
         allowedBrands,
     };
-
-    console.log(filterCriteria);
-    return filterCriteria;
 }
 
 function applyFilters(
@@ -224,7 +222,6 @@ function applyFilters(
     const bikeSeatHeight = parseInt(bike["Seat Height (mm)"]);
 
     if (bikeCC < criteria.minCC || bikeCC > criteria.maxCC) return false;
-
     if (bikePrice < criteria.minPrice || bikePrice > criteria.maxPrice)
         return false;
 
@@ -246,7 +243,6 @@ function applyFilters(
 
     if (!criteria.allowedBrands.some((brand) => bike["Brand"].includes(brand)))
         return false;
-
     if (bikeSeatHeight > criteria.maxSeatHeight) return false;
 
     return true;
@@ -263,6 +259,7 @@ const BikeResults: React.FC = () => {
         () => computeFilterCriteria(quizAnswers),
         [quizAnswers]
     );
+
     useEffect(() => {
         fetch("/src/assets/bikes.csv")
             .then((response) => response.text())
@@ -279,6 +276,7 @@ const BikeResults: React.FC = () => {
                 });
             });
     }, [filterCriteria]);
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "ArrowLeft")
@@ -291,98 +289,118 @@ const BikeResults: React.FC = () => {
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [bikes]);
+
     if (bikes.length === 0) {
         return (
-            <div className="min-h-screen flex items-center justify-center text-white">
-                No bikes found. Please try again with different preferences.
+            <div className="min-h-screen flex items-center justify-center bg-black">
+                <div className="text-center">
+                    <h1 className="text-2xl font-semibold text-orange-500 mb-2">
+                        No Bikes Found
+                    </h1>
+                    <p className="text-gray-400">
+                        Please try again with different preferences.
+                    </p>
+                </div>
             </div>
         );
     }
+
     const bike = bikes[currentIndex];
+
     return (
-        <div className="min-h-screen min-w-screen flex items-center justify-center p-4 relative">
-            <div className="bg-dark-orange rounded-lg p-6 text-white w-[80vh]">
-                <div className="mb-6 text-center">
-                    <h2 className="text-2xl font-bold">
+        <div className="min-h-screen flex bg-black p-4 items-center">
+            <div className="relative w-[30vw] h-[95vh] bg-gray-900 rounded-lg p-6">
+                <div className="h-10 overflow-hidden text-center">
+                    <h2 className="text-2xl font-bold text-orange-500 truncate">
                         {bike.Brand} {bike.Model}
                     </h2>
                 </div>
-                <div className="overflow-auto h-[52vh]">
-                    <table className="w-full text-sm">
-                        <tbody>
-                            {Object.entries(bike).map(([key, value]) => {
-                                if (
-                                    !value ||
-                                    key === "Brand" ||
-                                    key === "Model"
-                                )
-                                    return null;
-                                return (
-                                    <tr key={key}>
-                                        <td className="border px-2 py-1 font-semibold w-1/3">
-                                            {key}
-                                        </td>
-                                        <td className="border px-2 py-1">
-                                            {key === "Estimated MSRP (USD)"
-                                                ? "$" +
-                                                  Number(
-                                                      value
-                                                  ).toLocaleString() +
-                                                  " (likely inaccurate, used may be cheaper)"
-                                                : value}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                <div className="mt-4 overflow-y-auto h-[calc(95vh-10rem)]">
+                    <div className="grid grid-cols-2 gap-4">
+                        {Object.entries(bike).map(([key, value]) => {
+                            if (key === "Brand" || key === "Model") return null;
+                            return (
+                                <div
+                                    key={key}
+                                    className="p-2 bg-gray-800 rounded border border-gray-700"
+                                >
+                                    <p className="text-sm font-semibold text-gray-400">
+                                        {key}
+                                    </p>
+                                    <p className="text-gray-200">
+                                        {key === "Estimated MSRP (USD)"
+                                            ? "$" +
+                                              Number(value).toLocaleString()
+                                            : !value
+                                            ? "No info."
+                                            : value}
+                                    </p>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
-                <div className="mt-4 text-center text-lg">
+                <div className="absolute bottom-6 left-6">
+                    <button
+                        onClick={() =>
+                            setCurrentIndex((idx) => (idx > 0 ? idx - 1 : idx))
+                        }
+                        className="bg-orange-500 text-black rounded transition"
+                    >
+                        <svg
+                            className="h-5 w-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 19l-7-7 7-7"
+                            />
+                        </svg>
+                    </button>
+                </div>
+                <div className="absolute bottom-6 right-6">
+                    <button
+                        onClick={() =>
+                            setCurrentIndex((idx) =>
+                                idx < bikes.length - 1 ? idx + 1 : idx
+                            )
+                        }
+                        className="bg-orange-500 text-black rounded transition"
+                    >
+                        <svg
+                            className="h-5 w-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 5l7 7-7 7"
+                            />
+                        </svg>
+                    </button>
+                </div>
+                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-gray-300 font-medium text-lg">
                     {currentIndex + 1} / {bikes.length}
                 </div>
             </div>
-            <button
-                onClick={() =>
-                    setCurrentIndex((idx) => (idx > 0 ? idx - 1 : idx))
-                }
-                className="absolute left-40 flex items-center p-2 bg-orange-500 hover:bg-orange-600"
-            >
-                <svg
-                    className="h-8 w-8"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={4}
-                        d="M15 19l-7-7 7-7"
-                    />
-                </svg>
-            </button>
-            <button
-                onClick={() =>
-                    setCurrentIndex((idx) =>
-                        idx < bikes.length - 1 ? idx + 1 : idx
-                    )
-                }
-                className="absolute right-40 flex items-center p-2 bg-orange-500 hover:bg-orange-600"
-            >
-                <svg
-                    className="h-8 w-8"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={4}
-                        d="M9 5l7 7-7 7"
-                    />
-                </svg>
-            </button>
+
+            <div className="w-[25vw] h-[95vh] ml-8 bg-gray-800 rounded-lg shadow-xl p-6 flex flex-col">
+                <button className="mb-4 px-4 py-2 bg-orange-500 text-black rounded transition">
+                    Why this bike?
+                </button>
+                <textarea
+                    className="flex-1 bg-gray-900 text-gray-200 p-4 rounded border border-gray-700 resize-none"
+                    placeholder=""
+                    readOnly
+                />
+            </div>
         </div>
     );
 };
