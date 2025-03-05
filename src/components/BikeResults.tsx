@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Papa from "papaparse";
 import { useLocation } from "react-router-dom";
+import DeepSeekClient from "../DeepSeekClient";
 
-// Brand arrays
 const AllMotorcycleBrands = [
     "Aprilia",
     "Bajaj",
@@ -193,11 +193,13 @@ function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
         const weight = parseInt(quizAnswers[8] as string);
         if (weight > 120) {
             minCC = Math.max(minCC, 490);
+        } else if (weight > 110) {
+            minCC = Math.max(minCC, 440);
         } else if (weight > 100) {
-            minCC = Math.max(minCC, 390);
-        } else if (weight > 80) {
+            minCC = Math.max(minCC, 340);
+        } else if (weight > 90) {
             minCC = Math.max(minCC, 290);
-        } else if (weight > 70) {
+        } else if (weight > 80) {
             minCC = Math.max(minCC, 240);
         }
     }
@@ -255,6 +257,9 @@ const BikeResults: React.FC = () => {
     const quizAnswers = location.state?.quizAnswers;
     const [bikes, setBikes] = useState<Bike[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [explanation, setExplanation] = useState("");
+    const [loadingExplanation, setLoadingExplanation] = useState(false);
+
     const filterCriteria = useMemo(
         () => computeFilterCriteria(quizAnswers),
         [quizAnswers]
@@ -307,6 +312,72 @@ const BikeResults: React.FC = () => {
 
     const bike = bikes[currentIndex];
 
+    const handleExplanation = async () => {
+        setLoadingExplanation(true);
+        setExplanation("");
+        const content =
+            "You are recommending a bike for someone and giving reasons why." +
+            " The user mentioned they are at an " +
+            quizAnswers[0] +
+            " level." +
+            " They are looking for a bike with a displacement between " +
+            (quizAnswers[1] as { min: string; max: string }).min +
+            " and " +
+            (quizAnswers[1] as { min: string; max: string }).max +
+            "cc, and are interested in the following types: " +
+            (quizAnswers[2] as string[]).join(", ") +
+            ". They are looking for a bike between $" +
+            (quizAnswers[3] as { min: string; max: string }).min +
+            " and $" +
+            (quizAnswers[3] as { min: string; max: string }).max +
+            ". They are " +
+            (quizAnswers[4] as string) +
+            " okay with used bikes (Yes means they're okay, No means they are not). " +
+            "They are from " +
+            (quizAnswers[5] as string) +
+            ". They are specifically interested in the following brands: " +
+            (quizAnswers[6] as string[]).join(", ") +
+            ". They are " +
+            (quizAnswers[7] as string) +
+            " cm tall. You can mention this with the seat height of the bike. They weigh " +
+            (quizAnswers[8] as string) +
+            " kilograms. We will recommend higher CC if they are on the heavier size. " +
+            " You can mention this in the explanation, but don't repeat their height and weight to them. " +
+            "Based on this information, we recommended the " +
+            bike.Brand +
+            " " +
+            bike.Model +
+            " because it has a displacement of " +
+            bike["Displacement (CC)"] +
+            "cc, a seat height of " +
+            bike["Seat Height (mm)"] +
+            "mm, and an estimated MSRP of $" +
+            Number(bike["Estimated MSRP (USD)"]).toLocaleString() +
+            ". It is a " +
+            bike["Category"] +
+            " bike. Be kind, and mention the points that make this bike a good fit for the user. " +
+            "Make sure that it only takes up to 2 short paragraphs. (Max 150 words).";
+
+        try {
+            const response = await DeepSeekClient.chat.completions.create({
+                messages: [{ role: "system", content: content }],
+                model: "deepseek-chat",
+            });
+            const message = response.choices[0].message.content;
+            if (message != null) setExplanation(message);
+            else
+                setExplanation(
+                    "Error. Please report this to qedized@gmail.com."
+                );
+        } catch (error) {
+            console.error("Error fetching explanation:", error);
+            setExplanation(
+                "Error fetching explanation. Please report this to qedized@gmail.com."
+            );
+        }
+        setLoadingExplanation(false);
+    };
+
     return (
         <div className="min-h-screen flex bg-black p-4 items-center">
             <div className="relative w-[30vw] h-[95vh] bg-gray-900 rounded-lg p-6">
@@ -345,7 +416,7 @@ const BikeResults: React.FC = () => {
                         onClick={() =>
                             setCurrentIndex((idx) => (idx > 0 ? idx - 1 : idx))
                         }
-                        className="bg-orange-500 text-black rounded transition"
+                        className="bg-orange-500 text-black rounded transition p-2"
                     >
                         <svg
                             className="h-5 w-5"
@@ -369,7 +440,7 @@ const BikeResults: React.FC = () => {
                                 idx < bikes.length - 1 ? idx + 1 : idx
                             )
                         }
-                        className="bg-orange-500 text-black rounded transition"
+                        className="bg-orange-500 text-black rounded transition p-2"
                     >
                         <svg
                             className="h-5 w-5"
@@ -390,14 +461,17 @@ const BikeResults: React.FC = () => {
                     {currentIndex + 1} / {bikes.length}
                 </div>
             </div>
-
-            <div className="w-[25vw] h-[95vh] ml-8 bg-gray-800 rounded-lg shadow-xl p-6 flex flex-col">
-                <button className="mb-4 px-4 py-2 bg-orange-500 text-black rounded transition">
-                    Why this bike?
+            <div className="w-[30vw] h-[95vh] ml-8 bg-gray-800 rounded-lg shadow-xl p-6 flex flex-col">
+                <button
+                    onClick={handleExplanation}
+                    className="mb-4 px-4 py-2 bg-orange-500 text-black rounded transition"
+                >
+                    {loadingExplanation ? "Loading..." : "Why this bike?"}
                 </button>
                 <textarea
                     className="flex-1 bg-gray-900 text-gray-200 p-4 rounded border border-gray-700 resize-none"
-                    placeholder=""
+                    placeholder="Explanation will appear here..."
+                    value={explanation}
                     readOnly
                 />
             </div>
