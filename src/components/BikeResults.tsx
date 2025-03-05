@@ -382,9 +382,9 @@ const BikeResults: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex bg-black p-4 items-center justify-center min-w-screen">
-            <div className="flex justify-center items-center">
-                <div className="relative w-[500px] bg-gray-900 rounded-lg p-6">
+        <div className="flex min-w-screen justify-center">
+            <div className="flex flex-col md:flex-row items-center">
+                <div className="relative w-[90vw] mt-4 md:mt-0 md:w-[500px] bg-gray-900 rounded-2xl p-6">
                     <div className="h-10 overflow-hidden text-center">
                         <h2 className="text-xl font-bold text-orange-500 truncate">
                             {bike.Brand} {bike.Model}
@@ -463,7 +463,7 @@ const BikeResults: React.FC = () => {
                         </button>
                     </div>
                 </div>
-                <div className="h-[600px] w-[500px] ml-8 bg-gray-900 rounded-lg shadow-xl p-6 flex flex-col">
+                <div className="h-[600px] w-[90vw] md:w-[500px] ml-0 md:ml-8 mt-8 md:mt-0 bg-gray-900 rounded-2xl shadow-xl p-6 flex flex-col">
                     <button
                         onClick={handleExplanation}
                         className="mb-4 px-4 py-2 bg-orange-500 text-black rounded transition"

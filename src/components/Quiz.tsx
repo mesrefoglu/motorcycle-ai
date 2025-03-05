@@ -158,11 +158,11 @@ const Quiz: React.FC = () => {
 
     return (
         <div className="min-w-screen min-h-screen flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-dark-orange rounded-lg shadow p-6 h-[58vh] flex flex-col justify-between">
+            <div className="w-full max-w-md bg-dark-orange rounded-lg shadow p-6 h-[400px] flex flex-col justify-between">
                 <div>
-                    <h2 className="text-xl font-semibold mb-4">
+                    <p className="text-xl font-semibold mb-4">
                         {current.question}
-                    </h2>
+                    </p>
                     <div>
                         {current.type === "radio" &&
                             current.options &&
@@ -189,7 +189,7 @@ const Quiz: React.FC = () => {
                                 </label>
                             ))}
                         {current.type === "checkbox" && current.options && (
-                            <div className="max-h-54 overflow-y-auto">
+                            <div className="max-h-54 overflow-y-auto mb-1">
                                 {current.options.map((option) => (
                                     <label
                                         key={option}
