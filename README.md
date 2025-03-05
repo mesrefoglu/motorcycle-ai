@@ -1,3 +1,3 @@
-# motorcycle-ai
+# AI Motorcycle Recommender
 
-An AI algorithm that suggest the perfect motorcycles for you.
+A website to help you choose your next bike!
