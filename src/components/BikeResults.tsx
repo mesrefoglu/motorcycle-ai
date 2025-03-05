@@ -47,34 +47,12 @@ const CommonMotorcycleBrands = [
     "Yamaha",
     "Zero",
 ];
-const AsianMotorcycleBrands = [
-    "Bajaj",
-    "Benelli",
-    "Hero MotoCorp",
-    "Husqvarna",
-    "Indian",
-    "Lifan",
-    "Shineray",
-    "TVS",
-];
+const AsianMotorcycleBrands = ["Bajaj", "Benelli", "Hero MotoCorp", "Husqvarna", "Indian", "Lifan", "Shineray", "TVS"];
 const EuropeanMotorcycleBrands = ["Benelli", "Indian", "Husqvarna", "Lifan"];
 const NorthAmericanMotorcycleBrands = ["Husqvarna", "Indian"];
-const SouthAmericanMotorcycleBrands = [
-    "Bajaj",
-    "Benelli",
-    "Italika",
-    "Lifan",
-    "Motomel",
-];
+const SouthAmericanMotorcycleBrands = ["Bajaj", "Benelli", "Italika", "Lifan", "Motomel"];
 const AustralianMotorcycleBrands = ["Benelli", "Husqvarna", "Indian"];
-const AfricanMotorcycleBrands = [
-    "Bajaj",
-    "Benelli",
-    "Hero MotoCorp",
-    "Lifan",
-    "TVS",
-    "Shineray",
-];
+const AfricanMotorcycleBrands = ["Bajaj", "Benelli", "Hero MotoCorp", "Lifan", "TVS", "Shineray"];
 
 interface QuizAnswers {
     [index: number]: string | { min: string; max: string } | string[];
@@ -120,9 +98,7 @@ function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
         maxCC = Math.min(maxCC, parseInt(cCRange.max) + 10);
     }
 
-    const types = Array.isArray(quizAnswers[2])
-        ? (quizAnswers[2] as string[])
-        : [];
+    const types = Array.isArray(quizAnswers[2]) ? (quizAnswers[2] as string[]) : [];
     if (types.includes("All-rounder")) {
         interestedCategories.push("allround");
     }
@@ -133,14 +109,7 @@ function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
         interestedCategories.push("sport", "naked");
     }
     if (types.includes("Adventure / Offroad")) {
-        interestedCategories.push(
-            "motard",
-            "enduro",
-            "offroad",
-            "cross",
-            "motocross",
-            "trial"
-        );
+        interestedCategories.push("motard", "enduro", "offroad", "cross", "motocross", "trial");
     }
     if (types.includes("Classic")) {
         interestedCategories.push("classic");
@@ -178,13 +147,9 @@ function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
     } else {
         allowedBrands = [...AllMotorcycleBrands];
     }
-    const interestedBrands = Array.isArray(quizAnswers[6])
-        ? (quizAnswers[6] as string[])
-        : [];
+    const interestedBrands = Array.isArray(quizAnswers[6]) ? (quizAnswers[6] as string[]) : [];
     if (interestedBrands.length > 0) {
-        allowedBrands = allowedBrands.filter((brand) =>
-            interestedBrands.includes(brand)
-        );
+        allowedBrands = allowedBrands.filter((brand) => interestedBrands.includes(brand));
     }
     if ((quizAnswers[7] as string) !== "") {
         maxSeatHeight = parseInt(quizAnswers[7] as string) * 4.9;
@@ -215,21 +180,16 @@ function computeFilterCriteria(quizAnswers: QuizAnswers): FilterCriteria {
     };
 }
 
-function applyFilters(
-    bike: { [key: string]: string },
-    criteria: FilterCriteria
-) {
+function applyFilters(bike: { [key: string]: string }, criteria: FilterCriteria) {
     const bikeCC = parseInt(bike["Displacement (CC)"]);
     const bikePrice = parseInt(bike["Estimated MSRP (USD)"]);
     const bikeSeatHeight = parseInt(bike["Seat Height (mm)"]);
 
     if (bikeCC < criteria.minCC || bikeCC > criteria.maxCC) return false;
-    if (bikePrice < criteria.minPrice || bikePrice > criteria.maxPrice)
-        return false;
+    if (bikePrice < criteria.minPrice || bikePrice > criteria.maxPrice) return false;
 
     for (const bannedCylinder of criteria.bannedCylinders) {
-        if (bike["Engine Cylinder"].toLowerCase().includes(bannedCylinder))
-            return false;
+        if (bike["Engine Cylinder"].toLowerCase().includes(bannedCylinder)) return false;
     }
 
     if (criteria.interestedCategories.length > 0) {
@@ -243,8 +203,7 @@ function applyFilters(
         if (!foundCategory) return false;
     }
 
-    if (!criteria.allowedBrands.some((brand) => bike["Brand"].includes(brand)))
-        return false;
+    if (!criteria.allowedBrands.some((brand) => bike["Brand"].includes(brand))) return false;
     if (bikeSeatHeight > criteria.maxSeatHeight) return false;
 
     return true;
@@ -260,10 +219,7 @@ const BikeResults: React.FC = () => {
     const [explanation, setExplanation] = useState("");
     const [loadingExplanation, setLoadingExplanation] = useState(false);
 
-    const filterCriteria = useMemo(
-        () => computeFilterCriteria(quizAnswers),
-        [quizAnswers]
-    );
+    const filterCriteria = useMemo(() => computeFilterCriteria(quizAnswers), [quizAnswers]);
 
     useEffect(() => {
         fetch("/src/assets/bikes.csv")
@@ -273,9 +229,7 @@ const BikeResults: React.FC = () => {
                     header: true,
                     skipEmptyLines: true,
                     complete: (results) => {
-                        const filtered = results.data.filter((bike) =>
-                            applyFilters(bike, filterCriteria)
-                        );
+                        const filtered = results.data.filter((bike) => applyFilters(bike, filterCriteria));
                         setBikes(filtered);
                     },
                 });
@@ -284,12 +238,8 @@ const BikeResults: React.FC = () => {
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "ArrowLeft")
-                setCurrentIndex((idx) => (idx > 0 ? idx - 1 : idx));
-            if (e.key === "ArrowRight")
-                setCurrentIndex((idx) =>
-                    idx < bikes.length - 1 ? idx + 1 : idx
-                );
+            if (e.key === "ArrowLeft") setCurrentIndex((idx) => (idx > 0 ? idx - 1 : idx));
+            if (e.key === "ArrowRight") setCurrentIndex((idx) => (idx < bikes.length - 1 ? idx + 1 : idx));
         };
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
@@ -299,12 +249,8 @@ const BikeResults: React.FC = () => {
         return (
             <div className="min-h-screen flex items-center justify-center bg-black">
                 <div className="text-center">
-                    <h1 className="text-2xl font-semibold text-orange-500 mb-2">
-                        No Bikes Found
-                    </h1>
-                    <p className="text-gray-400">
-                        Please try again with different preferences.
-                    </p>
+                    <h1 className="text-2xl font-semibold text-orange-500 mb-2">No Bikes Found</h1>
+                    <p className="text-gray-400">Please try again with different preferences.</p>
                 </div>
             </div>
         );
@@ -368,15 +314,10 @@ const BikeResults: React.FC = () => {
             });
             const message = response.choices[0].message.content;
             if (message != null) setExplanation(message);
-            else
-                setExplanation(
-                    "Error. Please report this to qedized@gmail.com."
-                );
+            else setExplanation("Error. Please report this to qedized@gmail.com.");
         } catch (error) {
             console.error("Error fetching explanation:", error);
-            setExplanation(
-                "Error fetching explanation. Please report this to qedized@gmail.com."
-            );
+            setExplanation("Error fetching explanation. Please report this to qedized@gmail.com.");
         }
         setLoadingExplanation(false);
     };
@@ -394,17 +335,11 @@ const BikeResults: React.FC = () => {
                         {Object.entries(bike).map(([key, value]) => {
                             if (key === "Brand" || key === "Model") return null;
                             return (
-                                <div
-                                    key={key}
-                                    className="p-2 bg-gray-800 rounded border border-gray-700"
-                                >
-                                    <p className="text-sm font-semibold text-gray-400">
-                                        {key}
-                                    </p>
+                                <div key={key} className="p-2 bg-gray-800 rounded border border-gray-700">
+                                    <p className="text-sm font-semibold text-gray-400">{key}</p>
                                     <p className="text-gray-200">
                                         {key === "Estimated MSRP (USD)"
-                                            ? "$" +
-                                              Number(value).toLocaleString()
+                                            ? "$" + Number(value).toLocaleString()
                                             : !value
                                             ? "No info."
                                             : value}
@@ -415,19 +350,10 @@ const BikeResults: React.FC = () => {
                     </div>
                     <div className="mt-6 flex justify-between">
                         <button
-                            onClick={() =>
-                                setCurrentIndex((idx) =>
-                                    idx > 0 ? idx - 1 : idx
-                                )
-                            }
+                            onClick={() => setCurrentIndex((idx) => (idx > 0 ? idx - 1 : idx))}
                             className="bg-orange-500 text-black rounded transition p-2"
                         >
-                            <svg
-                                className="h-5 w-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
+                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
@@ -440,25 +366,11 @@ const BikeResults: React.FC = () => {
                             {currentIndex + 1} / {bikes.length}
                         </div>
                         <button
-                            onClick={() =>
-                                setCurrentIndex((idx) =>
-                                    idx < bikes.length - 1 ? idx + 1 : idx
-                                )
-                            }
+                            onClick={() => setCurrentIndex((idx) => (idx < bikes.length - 1 ? idx + 1 : idx))}
                             className="bg-orange-500 text-black rounded transition p-2"
                         >
-                            <svg
-                                className="h-5 w-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M9 5l7 7-7 7"
-                                />
+                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                         </button>
                     </div>
@@ -468,9 +380,7 @@ const BikeResults: React.FC = () => {
                         onClick={handleExplanation}
                         className="mb-4 px-4 py-2 bg-orange-500 text-black rounded transition"
                     >
-                        {loadingExplanation
-                            ? "Please wait..."
-                            : "Why this bike?"}
+                        {loadingExplanation ? "Please wait..." : "Why this bike?"}
                     </button>
                     <textarea
                         className="mt-2 flex-1 bg-gray-800 text-gray-200 p-4 rounded border border-gray-700"

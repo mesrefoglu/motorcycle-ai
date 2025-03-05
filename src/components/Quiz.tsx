@@ -20,14 +20,7 @@ const quizQuestions: Question[] = [
     {
         question: "What types are you interested in?",
         type: "checkbox",
-        options: [
-            "All-rounder",
-            "Cruiser",
-            "Sport",
-            "Adventure / Offroad",
-            "Classic",
-            "Touring",
-        ],
+        options: ["All-rounder", "Cruiser", "Sport", "Adventure / Offroad", "Classic", "Touring"],
     },
     { question: "What is your budget range? (USD)", type: "range" },
     {
@@ -38,14 +31,7 @@ const quizQuestions: Question[] = [
     {
         question: "Which region are you in?",
         type: "radio",
-        options: [
-            "Asia",
-            "Europe",
-            "North America",
-            "South America",
-            "Africa",
-            "Australia",
-        ],
+        options: ["Asia", "Europe", "North America", "South America", "Africa", "Australia"],
     },
     {
         question: "Which brands are you interested in?",
@@ -86,11 +72,7 @@ type Answer = string | { min: string; max: string } | string[];
 
 const Quiz: React.FC = () => {
     const initialAnswers = quizQuestions.map((q) =>
-        q.type === "range"
-            ? { min: "", max: "" }
-            : q.type === "checkbox"
-            ? []
-            : ""
+        q.type === "range" ? { min: "", max: "" } : q.type === "checkbox" ? [] : ""
     );
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState<Answer[]>(initialAnswers);
@@ -160,58 +142,36 @@ const Quiz: React.FC = () => {
         <div className="min-w-screen min-h-screen flex items-center justify-center p-4">
             <div className="w-full max-w-md bg-dark-orange rounded-lg shadow p-6 h-[400px] flex flex-col justify-between">
                 <div>
-                    <p className="text-xl font-semibold mb-4">
-                        {current.question}
-                    </p>
+                    <p className="text-xl font-semibold mb-4">{current.question}</p>
                     <div>
                         {current.type === "radio" &&
                             current.options &&
                             current.options.map((option) => (
-                                <label
-                                    key={option}
-                                    className="flex items-center mb-3"
-                                >
+                                <label key={option} className="flex items-center mb-3">
                                     <input
                                         type="radio"
                                         name={`question-${currentQuestion}`}
                                         value={option}
-                                        checked={
-                                            answers[currentQuestion] === option
-                                        }
-                                        onChange={() =>
-                                            handleRadioChange(option)
-                                        }
+                                        checked={answers[currentQuestion] === option}
+                                        onChange={() => handleRadioChange(option)}
                                         className="form-radio h-5 w-5 color-black"
                                     />
-                                    <span className="ml-2 text-white">
-                                        {option}
-                                    </span>
+                                    <span className="ml-2 text-white">{option}</span>
                                 </label>
                             ))}
                         {current.type === "checkbox" && current.options && (
                             <div className="max-h-54 overflow-y-auto mb-1">
                                 {current.options.map((option) => (
-                                    <label
-                                        key={option}
-                                        className="flex items-center mb-3"
-                                    >
+                                    <label key={option} className="flex items-center mb-3">
                                         <input
                                             type="checkbox"
                                             name={`question-${currentQuestion}`}
                                             value={option}
-                                            checked={(
-                                                answers[
-                                                    currentQuestion
-                                                ] as string[]
-                                            ).includes(option)}
-                                            onChange={() =>
-                                                handleCheckboxChange(option)
-                                            }
+                                            checked={(answers[currentQuestion] as string[]).includes(option)}
+                                            onChange={() => handleCheckboxChange(option)}
                                             className="form-checkbox h-5 w-5 color-black"
                                         />
-                                        <span className="ml-2 text-white">
-                                            {option}
-                                        </span>
+                                        <span className="ml-2 text-white">{option}</span>
                                     </label>
                                 ))}
                             </div>
@@ -221,9 +181,7 @@ const Quiz: React.FC = () => {
                                 <input
                                     type="number"
                                     value={answers[currentQuestion] as string}
-                                    onChange={(e) =>
-                                        handleTextChange(e.target.value)
-                                    }
+                                    onChange={(e) => handleTextChange(e.target.value)}
                                     className="w-full p-2 border rounded bg-black text-white"
                                 />
                             </div>
@@ -240,9 +198,7 @@ const Quiz: React.FC = () => {
                                             }
                                         ).min
                                     }
-                                    onChange={(e) =>
-                                        handleRangeChange("min", e.target.value)
-                                    }
+                                    onChange={(e) => handleRangeChange("min", e.target.value)}
                                     placeholder="Min"
                                     className="w-1/2 p-2 border rounded bg-black text-white"
                                 />
@@ -256,9 +212,7 @@ const Quiz: React.FC = () => {
                                             }
                                         ).max
                                     }
-                                    onChange={(e) =>
-                                        handleRangeChange("max", e.target.value)
-                                    }
+                                    onChange={(e) => handleRangeChange("max", e.target.value)}
                                     placeholder="Max"
                                     className="w-1/2 p-2 border rounded bg-black text-white"
                                 />
@@ -267,9 +221,7 @@ const Quiz: React.FC = () => {
                         {current.type === "dropdown" && current.options && (
                             <select
                                 value={answers[currentQuestion] as string}
-                                onChange={(e) =>
-                                    handleTextChange(e.target.value)
-                                }
+                                onChange={(e) => handleTextChange(e.target.value)}
                                 className="w-full p-2 border rounded bg-black text-white"
                             >
                                 <option value="" disabled>
@@ -283,25 +235,17 @@ const Quiz: React.FC = () => {
                             </select>
                         )}
                     </div>
-                    <p className="text-xs text-gray-300">
-                        You can leave it blank if you don't want to answer.
-                    </p>
+                    <p className="text-xs text-gray-300">You can leave it blank if you don't want to answer.</p>
                 </div>
                 <div className="flex justify-between mt-4">
                     {currentQuestion > 0 ? (
-                        <button
-                            onClick={prevQuestion}
-                            className="px-4 py-2 bg-white text-black"
-                        >
+                        <button onClick={prevQuestion} className="px-4 py-2 bg-white text-black">
                             Back
                         </button>
                     ) : (
                         <div className="w-20"></div>
                     )}
-                    <button
-                        onClick={nextQuestion}
-                        className="px-4 py-2 bg-black text-white"
-                    >
+                    <button onClick={nextQuestion} className="px-4 py-2 bg-black text-white">
                         {currentQuestion === quizQuestions.length - 1 ||
                         (answers[0] !== "Beginner" && currentQuestion === 7)
                             ? "Submit"
