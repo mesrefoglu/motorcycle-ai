@@ -222,7 +222,7 @@ const BikeResults: React.FC = () => {
     const filterCriteria = useMemo(() => computeFilterCriteria(quizAnswers), [quizAnswers]);
 
     useEffect(() => {
-        fetch("/motorcycle-ai/bikes.csv")
+        fetch("/bikes.csv")
             .then((response) => response.text())
             .then((csvText) => {
                 Papa.parse<Bike>(csvText, {
